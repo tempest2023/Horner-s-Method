@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Horner's method</title>
+        <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+        <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" rel="stylesheet">
+        <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    </head>
+    <body>
+        <div id="calc_show" style="width:50%;height:100%;padding:2%;position:fixed;top:2px;border:1px #fff solid;background:#eeefff;overflow-y:auto;" class="text-left">
+            <table class="table table-bordered" style="background:#fff;">
+                <tr><td>Polynomial</td><td><var>Y</var>=An * <var>X</var> ^ n + A(n-1) * <var>X</var> ^ (n-1) + ... + A1 * <var>X</var> + A0</td></tr>
+                <tr><td colspan="2" style="padding-left:20%;"><div class="input-group"><div class="input-group-addon"><var>X</var>=</div><input name="c" id="c_value" type="text" class="form-control" placeholder="c=0" /></div></td></tr>
+                <tr><td colspan="2" style="padding-left:20%;"><div class="input-group"><div class="input-group-addon"><var>N</var>=</div><input name="n" id="n_value" type="text" class="form-control" placeholder="n=0" /></div></td></tr>
+            </table>
+            <br/>
+            <table id="all_An_value" class="table table-bordered" style="background:#fff;">
+                <tr><th>参数</th><th>a0 , a1 , a2 , ... , an</th></tr>
+                <tr><td colspan="2" style="padding-left:16.5%;"><div class="input-group"><div class="input-group-addon"><var>an</var> =</div><input name="an" id="an_value" type="text" class="form-control" placeholder="an=0" /></div></td></tr>
+            </table>
+            <br/>
+            <div style="background:#fff;" class="panel panel-default">
+                <div class="panel-body">
+                    <h3>计算多项式的值</h3>
+                    <br>
+                    <h4 id="Poly"><var>Y</var> = An * <var>X</var> ^ n + A(n-1) * <var>X</var> ^ (n-1) + ... + A1 * <var>X</var> + A0</h4>
+                    <br>
+                    <h4 id="result">When <var>X</var> = c,<var>Y</var> = ?</h4>
+                </div>
+            </div>
+        </div>
+        <div style="width:50%;position:fixed;right:0;background:#fff;height:100%;padding:2%;overflow-y:auto;" class="text-left">
+            <p>
+                <h1>Horner's Method</h1>
+                <h3>计算多项式的值</h3>
+                <pre>
+function Horner(c,a){
+    //Calc y=A(n)X^n+A(n-1)X^(n-1)+...+A1X+A0 when x=c
+    //a is the array[a0,a1,a2,...,an]
+    let n=a.length;//n+1
+    let y=a[n-1];
+    for(let i=1;i&lt;n;i++){
+        y=y*c+a[n-1-i];
+    }
+    return y;
+}</pre>
+<h3>Horner's Method计算多项式一共需要做n次乘法和n次加法.</h3>
+            </p>
+        </div>
+        <script type="text/javascript">
+        let a=[];
+        a.len=0;
+        let c=0;
+        $(document).ready(function() {
+            $("#c_value").change(function(event) {
+                c=parseInt($(this).val(),10);
+                $("#result").html(`When <var>X</var> = ${c},<var>Y</var> = ?`)
+            });
+            $("#n_value").change(function(event) {
+                let n=parseInt($(this).val(),10);
+                n=isNaN(n)?0:n;
+                a.len=n;
+                let tr_str="<tbody><tr><th>参数</th><th>a0 , a1 , a2 , ... , an</th></tr>";
+                for (let i = 0; i <= n; i++) {
+                    tr_str+=`<tr><td colspan="2" style="padding-left:16.5%;"><div class="input-group"><div class="input-group-addon"><var>a${i}</var> =</div><input name="a${i}" id="a${i}_value" type="text" class="form-control" placeholder="a${i}=0" /></div></td></tr>`;
+                }
+                tr_str+="</tbody>";
+                $("#all_An_value").empty();
+                $("#all_An_value").append(tr_str);
+                //Bind Event;
+                for (let i=0;i<=n;i++) {
+                    let id=`#a${i}_value`;
+                    $(id).unbind('change').bind('change',function(event) {
+                        if(i<=a.len)
+                            {
+                                a[i]=parseInt($(this).val(),10);
+                                let show_str="<var>Y</var> = ";
+                                for (let j = a.len; j >= 0; j--) {
+                                    show_str+=`${j==a.len?'':' + '}${a[j]==undefined?"?":a[j]} ${j==1?`<var>X</var>`:(j==0?'':`<var>X</var> ^ ${j}`)} `;
+                                }
+                                $("#Poly").html(show_str);
+                                //calc when there are not undefined.
+                                let flag=true;
+                                for (let j = a.len; j >= 0; j--) {
+                                    if(a[j]==undefined){
+                                        flag=false;break;
+                                    }
+                                }
+                                if(flag){
+                                    let result=Horner(c,a);
+                                    let show_re=`When <var>X</var> = ${c},<var>Y</var> = ${result}`;
+                                    $("#result").html(show_re);
+                                }
+                            }
+                    });
+                }
+            });
+        });
+            function Horner(c,a){
+                //Calc y=A(n)X^n+A(n-1)X^(n-1)+...+A1X+A0 when x=c
+                //a is the array[a0,a1,a2,...,an]
+                let n=a.len;//n+1
+                let y=a[n];
+                for(let i=1;i<n+1;i++){
+                    y=y*c+a[n-i];
+                }
+                return y;
+            }
+        </script>
+    </body>
+</html>
